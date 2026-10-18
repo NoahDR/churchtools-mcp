@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "churchtools": {
+      "command": "npm",
+      "args": ["run", "--silent", "start"]
+    }
+  }
+}
