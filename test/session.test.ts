@@ -44,6 +44,25 @@ test("a login without 2FA skips /login/totp and ends ready", async () => {
   });
 });
 
+test("an empty code logs in when the account has no 2FA", async () => {
+  const { fetch, calls } = fakeFetch(...loginAnswers("success"));
+  const session = createSession({ env, fetch });
+
+  expect(await session.login("")).toEqual(ready);
+  expect(calls.map((c) => c.path)).not.toContain("/churchtools/api/login/totp");
+});
+
+test("an empty code with 2FA asks for a code and never calls /login/totp", async () => {
+  const { fetch, calls } = fakeFetch(...loginAnswers("totp"));
+  const session = createSession({ env, fetch });
+
+  const message = await messageOf(session.login(""));
+
+  expect(message).toContain("needs a 2FA code");
+  expect(calls).toHaveLength(1);
+  expect(session.state()).toEqual({ state: "logged_out" });
+});
+
 test("a login with 2FA sends the code and the personId to /login/totp", async () => {
   const { fetch, calls } = fakeFetch(...loginAnswers("totp"));
   const session = createSession({ env, fetch });
