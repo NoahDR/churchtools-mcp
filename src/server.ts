@@ -3,10 +3,22 @@ import { z } from "zod";
 import { type Query } from "./ct/client.js";
 import { createSession } from "./ct/session.js";
 import { createPlans, guardOf } from "./plans.js";
+import { registerAbsenceTools } from "./tools/absences.js";
+import { registerAgendaTools } from "./tools/agenda.js";
 import { registerCalendarTools } from "./tools/calendars.js";
 import { registerEventTools } from "./tools/events.js";
 import { registerGroupTools } from "./tools/groups.js";
+import { registerFactTools } from "./tools/facts.js";
+import { registerMasterdataTools } from "./tools/masterdata.js";
+import { registerMeetingFollowupTools } from "./tools/meetings-followups.js";
 import { registerPersonTools } from "./tools/persons.js";
+import { registerModernServiceTools } from "./tools/services-modern.js";
+import { registerPostPermissionTools } from "./tools/posts-permissions.js";
+import { registerPublicFileCalendarTools } from "./tools/public-files-calendar.js";
+import { registerResourceTools } from "./tools/resources.js";
+import { registerSongTools } from "./tools/songs.js";
+import { registerTagNoteTools } from "./tools/tags-notes.js";
+import { registerWikiTools } from "./tools/wiki.js";
 import { toolResult } from "./tools/result.js";
 import {
   createSpec,
@@ -49,6 +61,18 @@ export function createServer({
   registerGroupTools(server, { session, plans });
   registerCalendarTools(server, { session, plans });
   registerEventTools(server, { session, plans });
+  registerAgendaTools(server, { session, plans });
+  registerSongTools(server, { session, plans });
+  registerModernServiceTools(server, { session, plans });
+  registerAbsenceTools(server, { session, plans });
+  registerResourceTools(server, { session, plans });
+  registerMasterdataTools(server, { session, plans });
+  registerFactTools(server, { session, plans });
+  registerMeetingFollowupTools(server, { session, plans });
+  registerWikiTools(server, { session, plans });
+  registerTagNoteTools(server, { session, plans });
+  registerPublicFileCalendarTools(server, { session, plans });
+  registerPostPermissionTools(server, { session, plans });
 
   /** GET runs at once; any other method becomes a plan. PUT, PATCH and DELETE are guarded by a GET on the same path when the spec has one; a POST creates, so it has no guard. */
   async function apiRequest(request: {

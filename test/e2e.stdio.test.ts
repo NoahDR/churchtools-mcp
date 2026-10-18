@@ -12,14 +12,14 @@ const server = {
   env: { PATH: process.env.PATH ?? "" },
 };
 
-test("the built server offers 33 tools over stdio", async () => {
+test("the built server offers 160 tools over stdio", async () => {
   const transport = new StdioClientTransport({ ...server, stderr: "pipe" });
   const client = new Client({ name: "e2e", version: "0.0.0" });
   await client.connect(transport);
 
   try {
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(33);
+    expect(tools).toHaveLength(160);
   } finally {
     await client.close();
   }
