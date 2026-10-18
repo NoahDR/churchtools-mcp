@@ -4,11 +4,16 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # A new release waits a week: most hijacked packages are found and pulled within days.
     cooldown:
       default-days: 7
     groups:
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # typescript-eslint pins the TypeScript minor; raise both together by hand.
+      - dependency-name: typescript
+        update-types: [version-update:semver-minor, version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:

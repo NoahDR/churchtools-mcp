@@ -1,61 +1,103 @@
+<div align="center">
+
 # churchtools-mcp
+
+**Talk to your ChurchTools instance from Claude, and approve every change before it happens.**
 
 [![CI](https://github.com/NoahDR/churchtools-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/NoahDR/churchtools-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Node 26](https://img.shields.io/badge/node-26-339933?logo=nodedotjs&logoColor=white)
 
-An MCP server for [ChurchTools](https://church.tools), the church management software. It gives Claude Code
-(or any MCP client) tools to read and change persons, groups, calendars and events of one ChurchTools
-instance, and reaches every other endpoint through the instance's OpenAPI spec. It acts with the rights of
-the logged-in user. Every write shows a preview first and runs only after you approve it.
+</div>
+
+An [MCP](https://modelcontextprotocol.io) server for [ChurchTools](https://church.tools). Plug it into Claude
+Code or any other MCP client and ask in plain words:
+
+> _Who is on the tech team for Sunday's service, and who is still missing?_
+>
+> _Put Lena into the youth leaders group._
+>
+> _Move the prayer evening on 12 November to 8 pm._
+
+Reads happen right away. Writes come back as a preview first: what would change, next to the record as it
+is now. Nothing is written until you say yes.
 
 > [!NOTE]
-> This is a community project. It is not made, endorsed or supported by ChurchTools Innovations GmbH.
-> "ChurchTools" is their name and is used here only to say which software the server talks to.
+> A community project, not made, endorsed or supported by ChurchTools Innovations GmbH.
 
-## Setup
+## What it can do
 
-Requires Node 26 (`.nvmrc`).
+- **Persons**: search, read, create, update, delete. The preview of a create lists persons with the same name.
+- **Groups**: manage groups and their members, roles included.
+- **Calendars**: list, create, update and delete appointments. Creating one from an event template creates
+  the event too.
+- **Events**: read events and services, and staff them with people from ChurchTools or by name.
+- **Everything else**: the server reads your instance's own OpenAPI spec, so Claude can find and call any of
+  the 800+ endpoints, such as finance, songs, wiki or resources.
 
-1. Clone the repository, then install and build:
+## Quick start
 
-   ```
-   npm ci
-   npm run build
-   ```
+You need Node 26 and a ChurchTools account (with 2FA, ideally).
 
-2. Copy `.env.example` to `.env` and fill in `CT_URL` (https only), `CT_USERNAME` and `CT_PASSWORD`.
-   Keep every value in double quotes: unquoted, a `#` starts a comment and cuts the value. `.env` stays
-   out of git.
-3. Register the server with your MCP client.
-   - **Claude Code in this repository:** start `claude` in the repository root and approve the project
-     MCP server `churchtools` from `.mcp.json` once. `claude mcp get churchtools` shows the connection state.
-   - **Claude Code everywhere:** `claude mcp add --scope user churchtools -- node --env-file=/path/to/churchtools-mcp/.env /path/to/churchtools-mcp/dist/index.js`
-   - **Other clients:** start `node --env-file=/path/to/churchtools-mcp/.env /path/to/churchtools-mcp/dist/index.js` over stdio.
+```bash
+git clone https://github.com/NoahDR/churchtools-mcp.git
+cd churchtools-mcp
+npm ci && npm run build
+cp .env.example .env
+```
 
-## Log in
+Fill in `.env`, keeping the double quotes: a `#` in an unquoted value starts a comment.
 
-The server starts logged out and keeps the session in memory only. Ask Claude to log in: it calls
-`ct_status`, asks you for the current 2FA code from your authenticator app and calls `ct_login` with it.
-A ChurchTools session usually lasts a day; log in again when a tool reports the session expired.
+```bash
+CT_URL="https://your-church.church.tools"
+CT_USERNAME="you@example.org"
+CT_PASSWORD="..."
+```
 
-## Writes: the plan flow
+Then register the server:
 
-A write tool changes nothing. It returns a plan: a preview of each request with the record as it is now,
-and a token. After you approve the preview, `ct_execute_plan` runs it. A token is valid once, for 10
-minutes. Before writing, the server re-reads every record it can read back; if one changed since the preview,
-nothing is written. A generic write to a path without a GET has no such check.
+| Client                       | How                                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------------------- |
+| Claude Code, this repository | start `claude` in the repository and approve `churchtools` from `.mcp.json` once              |
+| Claude Code, everywhere      | `claude mcp add --scope user churchtools -- node --env-file=<repo>/.env <repo>/dist/index.js` |
+| Any other MCP client         | run `node --env-file=<repo>/.env <repo>/dist/index.js` over stdio                             |
+
+Ask Claude to log in. With 2FA on, it asks for the current code from your authenticator app. A session
+lasts about a day.
+
+## How a write works
+
+```mermaid
+flowchart TD
+  A[You ask for a change] --> B[Write tool builds a plan]
+  B --> C[Preview: request and current record]
+  C --> D{You approve?}
+  D -- no --> E[Nothing happens]
+  D -- yes --> F[ct_execute_plan with the one-time token]
+  F --> G{Record changed since the preview?}
+  G -- yes --> E
+  G -- no --> H[Written to ChurchTools]
+```
+
+A plan token works once and expires after 10 minutes. A generic write to a path without a GET endpoint
+skips the "changed since" check, because there is nothing to compare.
 
 ## Security
 
-- The server sees what your ChurchTools user sees. Use an account with only the rights you need, and with
-  2FA on.
-- Member data from ChurchTools goes to the model provider of your MCP client. Check that this fits your
-  church's data protection rules before you use it with real data.
-- Text in ChurchTools records (notes, descriptions) reaches the model and can try to steer it. The plan flow
-  keeps every write behind your approval: read each preview before you approve it.
-- How the server handles credentials, and how to report a vulnerability: [SECURITY.md](SECURITY.md).
+- **Your rights, no more.** The server acts as the logged-in user. Give that account only the rights you
+  need.
+- **Secrets stay local.** The password goes only to `CT_URL` over https, and the server follows no
+  redirects. The session lives in memory. On disk there is only the cached API spec in
+  `~/.cache/churchtools-mcp`.
+- **Data protection.** Member data you ask about goes to your MCP client's model provider. Check that this
+  fits your church's rules before you use real data.
+- **Prompt injection.** Text inside ChurchTools records reaches the model and could try to steer it. That is
+  why every write needs your approval: read the preview.
 
-## Tools
+Found a vulnerability? Please report it privately: [SECURITY.md](SECURITY.md).
+
+<details>
+<summary><b>All tools</b></summary>
 
 | Group        | Tools                                                                                                                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -67,27 +109,32 @@ nothing is written. A generic write to a path without a GET has no such check.
 | Calendars    | `ct_list_calendars`, `ct_list_appointments`, `ct_get_appointment`, `ct_create_appointment`, `ct_update_appointment`, `ct_delete_appointment`                                                    |
 | Events       | `ct_list_events`, `ct_get_event`, `ct_list_services`, `ct_update_event`, `ct_delete_event`, `ct_assign_event_service`, `ct_set_external_event_service`                                          |
 
-## Not included
+</details>
 
-- HTTP transport, several instances, npm package: it runs locally over stdio against one instance.
-- Bulk writes and an audit log: one record per write; ChurchTools keeps its own history.
-- OAuth and persistent login tokens: the login is password plus 2FA code, per session.
-- Curated tools for finance, songs, wiki, resources, check-in and absences: use `ct_api_request`.
-- A tool to create events: `ct_create_appointment` creates them from an event template through
-  `fields.events` ([docs/churchtools-api.md](docs/churchtools-api.md)).
-- Splitting an appointment series, editing or deleting a single occurrence, change-impact reports.
-- Event service counts, 2FA enrolment, anonymising personal data.
+<details>
+<summary><b>Not included (yet)</b></summary>
 
-## Develop
+- HTTP transport, several instances, an npm package: it runs locally over stdio against one instance.
+- Bulk writes and an audit log: one record per write, and ChurchTools keeps its own history.
+- OAuth and long-lived login tokens: the login is password plus 2FA code, per session.
+- A tool that creates only an event: `ct_create_appointment` does it through an event template
+  ([docs/churchtools-api.md](docs/churchtools-api.md)).
+- Splitting appointment series, editing a single occurrence, event service counts, 2FA enrolment,
+  anonymising personal data.
 
-[`CLAUDE.md`](CLAUDE.md) holds the build, check and live-test commands and the repository's rules.
-`npm run check` must pass; CI runs it on every push and pull request.
+</details>
 
-## Remove
+## Contributing
 
-Delete the `churchtools` entry from your MCP client, then delete `.env` and the cached API spec in
-`~/.cache/churchtools-mcp`. Nothing stays in ChurchTools besides the ended login session.
+Issues and pull requests are welcome. `npm run check` (types, lint, format, build, 1,000+ tests) must pass,
+and CI runs it on every pull request. [`CLAUDE.md`](CLAUDE.md) has the commands and the rules for the code,
+including the live tests against a ChurchTools trial instance.
+
+## Uninstall
+
+Remove `churchtools` from your MCP client, then delete `.env` and `~/.cache/churchtools-mcp`. In ChurchTools
+nothing stays behind besides the ended session.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © Noah Reinbold
