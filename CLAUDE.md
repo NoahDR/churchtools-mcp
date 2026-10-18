@@ -33,7 +33,7 @@ second waits for the next code.
 
 - Base branch: main
 - Branch: <type>/<topic>, for example feat/events-tool
-- Commit: Conventional Commits
+- Commit: Conventional Commits, signed (`main` accepts only verified commits)
 - Done: `npm run check` passes.
 - When a step does not need the developer, keep going. Stop only when you cannot continue without them, or
   before anything destructive.
