@@ -37,3 +37,19 @@ code relies on: when a live case fails, fix the fact here and the code that reli
 - **New assignment id.** Filling an event service (`PUT .../servicerequests/{id}` or
   `PUT .../eventservices/{id}`) gives the filled assignment a new id; the old one disappears from
   `GET /events/{eventId}`. Find it again by `serviceId` and assignee.
+
+## Coverage tools (spec-checked 2026-10)
+
+- **Modern service requests.** `PUT /events/{eventId}/servicerequests/{requestId}` (plus its
+  `/accept`, `/decline` and `/undo` POSTs) is the non-deprecated path; `ct_assign_event_service`
+  already used it. The deprecated `PUT .../eventservices/{serviceId}` remains only in
+  `ct_set_external_event_service`, whose `agreed` flag has no verified modern equivalent in the
+  curated flow, so it is kept and guarded like before instead of silently changing behaviour.
+- **Booking conflicts.** `POST /bookings/conflicts` only determines conflicts and creates
+  nothing, so booking plans call it for their preview and `ct_check_booking_conflicts` exposes
+  it as a read-style check.
+- **No `POST /events`.** The spec defines only `GET /events`; events are created through an
+  appointment with an event template (see above). Nothing invents a create endpoint.
+- **Not exposed.** Finance (129 operations), "Hidden" operations (81) and the legacy API are
+  deliberately without tools, as are person login tokens, passwords, 2FA, privacy consent and
+  merges.
