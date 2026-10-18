@@ -1,6 +1,7 @@
 name: CI
 
-# Runs fork pull requests without secrets and with a read-only token. Never switch to pull_request_target.
+# Runs pull request code, so fork pull requests get no secrets and a read-only token.
+# Never switch this workflow to pull_request_target.
 on:
   push:
     branches: [main]

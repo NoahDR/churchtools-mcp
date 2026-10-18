@@ -1,0 +1,41 @@
+name: Bug report
+description: Something does not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Leave out passwords, 2FA codes, session cookies and real member data. Replace names and addresses
+        with made-up ones.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The tool you called, what you expected and what you got. Include the error text.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Ask Claude to …
+        2. It calls ct_… with …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: churchtools-version
+    attributes:
+      label: ChurchTools version
+      description: Ask Claude for ct_status; it shows the version.
+      placeholder: "3.137.1"
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: MCP client and Node version
+      placeholder: "Claude Code 3.2, Node 26.1"
+    validations:
+      required: true

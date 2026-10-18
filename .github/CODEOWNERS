@@ -1,2 +1,7 @@
 # Every change needs the owner's review; workflows and settings above all.
 * @NoahDR
+
+# The dependency manifests have no owner, so a Dependabot update can merge with the approval of
+# dependabot-automerge.yml. A pull request that touches any other file still needs the owner.
+/package.json
+/package-lock.json

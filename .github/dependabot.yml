@@ -13,7 +13,7 @@ updates:
     ignore:
       # typescript-eslint pins the TypeScript minor; raise both together by hand.
       - dependency-name: typescript
-        update-types: [version-update:semver-minor, version-update:semver-major]
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

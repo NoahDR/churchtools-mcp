@@ -126,9 +126,9 @@ Found a vulnerability? Please report it privately: [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
-Issues and pull requests are welcome. `npm run check` (types, lint, format, build, 1,000+ tests) must pass,
-and CI runs it on every pull request. [`CLAUDE.md`](CLAUDE.md) has the commands and the rules for the code,
-including the live tests against a ChurchTools trial instance.
+Issues and pull requests are welcome: start with [CONTRIBUTING.md](CONTRIBUTING.md). `npm run check`
+(types, lint, format, build, 1,000+ tests) must pass, and CI runs it on every pull request. Please follow
+the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Uninstall
 
