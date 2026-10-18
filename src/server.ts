@@ -111,16 +111,19 @@ export function createServer({
     {
       title: "Log in to ChurchTools",
       description:
-        "Logs in with the configured user and the current 2FA code from the user's authenticator app. Ask the user for the code; never guess it. A new call replaces the current session.",
+        "Logs in with the configured user. If the account has 2FA, ask the user for the current code and pass it; never guess it. Without 2FA, omit the code. A new call replaces the current session.",
       inputSchema: z.object({
         code: z
           .string()
           .regex(/^\d{6}$/, "must be the 6-digit 2FA code")
-          .describe("The current 6-digit 2FA code"),
+          .optional()
+          .describe(
+            "The current 6-digit 2FA code; omit it when the account has no 2FA",
+          ),
       }),
       annotations: { readOnlyHint: false, openWorldHint: true },
     },
-    ({ code }) => toolResult(() => session.login(code)),
+    ({ code }) => toolResult(() => session.login(code ?? "")),
   );
 
   server.registerTool(

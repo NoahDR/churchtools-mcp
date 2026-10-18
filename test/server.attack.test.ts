@@ -56,14 +56,15 @@ test.each([
   expect(calls).toHaveLength(0);
 });
 
-test("ct_login without a code is rejected before any request", async () => {
-  const { fetch, calls } = fakeFetch();
+test("ct_login without a code logs in when the account has no 2FA", async () => {
+  const { fetch, calls } = fakeFetch(...loginAnswers("success"));
   const client = await connectClient({ env, fetch });
 
-  const { isError } = await call(client, "ct_login", {});
+  const { isError, text } = await call(client, "ct_login", {});
 
-  expect(isError).toBe(true);
-  expect(calls).toHaveLength(0);
+  expect(isError).toBe(false);
+  expect(text).toContain('"state":"ready"');
+  expect(calls.map((c) => c.path)).not.toContain("/churchtools/api/login/totp");
 });
 
 test("ct_login accepts a code with a leading zero", async () => {

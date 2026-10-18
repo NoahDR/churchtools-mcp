@@ -40,6 +40,7 @@ const infoSchema = z.object({
 /** Covers the plain and the JSON-escaped form, as a server message may echo either. */
 function redact(text: string, secrets: string[]): string {
   return secrets
+    .filter((secret) => secret.length > 0)
     .flatMap((secret) => [secret, JSON.stringify(secret).slice(1, -1)])
     .reduce((result, secret) => result.replaceAll(secret, "***"), text);
 }
@@ -68,6 +69,10 @@ export function createSession({
       "/login",
     ).data;
     if (login.status === "totp") {
+      if (!code)
+        throw new Error(
+          "This account needs a 2FA code: ask the user for the current code and call ct_login with it.",
+        );
       const totp = parse(
         totpSchema,
         await fresh.request("POST", "/login/totp", {
