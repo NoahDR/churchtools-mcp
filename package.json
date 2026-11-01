@@ -32,7 +32,7 @@
     "test:live": "node --env-file=.env.live node_modules/vitest/vitest.mjs run --project live"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "^2.3.1",
+    "@modelcontextprotocol/server": "^2.4.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
